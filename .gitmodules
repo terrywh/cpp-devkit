@@ -1,0 +1,3 @@
+[submodule "vendor/gsl"]
+	path = vendor/gsl
+	url = https://github.com/microsoft/GSL.git
