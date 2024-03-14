@@ -8,25 +8,25 @@ namespace boost::program_options {
     class options_description;
 }
 
-class ApplicationOptions {
+class application_options {
 public:
-    enum class Command {
-        Unknown, Listen, Connect,
+    enum class command {
+        unknown, listen, connect,
     };
 private:
+    static application_options* ins_;
     gsl::owner<boost::program_options::options_description*> desc_;
 
-    Command     command_;
+    command     command_;
     std::string address_;
-    std::uint16_t  port_;
 public:
-    ApplicationOptions(int argc, char* argv[]);
-    ~ApplicationOptions();
-    void PrintUsage();
+    application_options(int argc, char* argv[]);
+    ~application_options();
+    static application_options* get() { return ins_; }
+    void print_usage();
 
-    Command     Command() const { return command_; }
-    std::string Address() const { return address_; }
-    std::uint16_t  Port() const { return port_; }
+    command         cmd() const { return command_; }
+    std::string address() const { return address_; }
 };
 
 #endif // DEVKIT_PROGRAM_OPTIONS_H_

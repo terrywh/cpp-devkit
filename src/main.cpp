@@ -1,24 +1,27 @@
 #include "application_options.h"
-#include "client_application.h"
-#include "server_application.h"
+#include "application.h"
+#include "quic/core.h"
+#include "util/core.h"
 #include "util/output.h"
 #include <iostream>
 
 int main(int argc, char** argv) {
-    ApplicationOptions options(argc, argv);
-    gsl::owner<Application*> app;
-    switch (options.Command()) {
-    case ApplicationOptions::Command::Connect:
-        app = new ClientApplication(options);
+    quic::core qcore("devkit");
+    util::core ucore;
+    application_options options(argc, argv);
+    std::unique_ptr<application> app {nullptr};
+    switch (options.cmd()) {
+    case application_options::command::connect:
+        app.reset(new client_application());
         break;
-    case ApplicationOptions::Command::Listen:
-        app = new ServerApplication(options);
+    case application_options::command::listen:
+        app.reset(new server_application());
         break;
     default:
         std::cerr << util::Output::Warning("<ERROR>") << " missing {command}" << std::endl;
-        options.PrintUsage();
+        options.print_usage();
         return 0;
     }
-    app->Run();
+    app->run();
     return 0;
 }

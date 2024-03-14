@@ -1,27 +1,35 @@
 #ifndef DEVKIT_APPLICATION_H_
 #define DEVKIT_APPLICATION_H_
-#include "application_context.h"
-#include "application_options.h"
-#include <gsl/zstring>
+#include "quic/connection.h"
+#include "quic/listener.h"
+#include <gsl/pointers>
+#include <memory>
 
-namespace boost::asio {
-    class io_context;
-}
 
-class Application {
+class application {
+    gsl::owner<void*> work_;
 public:
-    Application(const ApplicationOptions& options);
-    virtual ~Application() = default;
-    virtual void Run();
-protected:
-    ApplicationContext& Context() { return context_; }
-    const ApplicationOptions& Options() const { return options_; }
-    boost::asio::io_context& IoContext() const { return *io_; }
+    application();
+    virtual void   run();
+    virtual void close();
+};
 
+class server_application: public application {
+public:
+    server_application();
+    ~server_application();
+    void run() override;
 private:
-    ApplicationContext context_;
-    const ApplicationOptions& options_;
-    std::unique_ptr<boost::asio::io_context> io_;
+    std::unique_ptr<quic::listener> listener_;
+};
+
+class client_application: public application {
+public:
+    client_application();
+    ~client_application();
+    void run() override;
+private:
+    std::unique_ptr<quic::connection> conn_;
 };
 
 #endif // DEVKIT_APPLICATION_H_
