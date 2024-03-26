@@ -10,6 +10,7 @@ struct QUIC_LISTENER_EVENT;
 namespace quic {
 
 struct core;
+struct configuration;
 
 } // namespace quic
 

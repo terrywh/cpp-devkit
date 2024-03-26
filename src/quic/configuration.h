@@ -4,19 +4,17 @@
 
 namespace quic {
 
-class configuration {
+struct configuration {
 public:
-    operator HQUIC() {
-        return handle_;
-    }
-protected:
+    static configuration& get() { return *ins_; }
+    configuration(bool server);
+    ~configuration();
+    void close();
+    operator HQUIC() { return handle_; }
+
+private:
+    static configuration* ins_;
     HQUIC handle_;
-};
-class client_configuration: public configuration {
-    client_configuration();
-};
-class server_configuration: public configuration {
-    server_configuration();
 };
 
 } // namespace quic

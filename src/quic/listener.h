@@ -1,15 +1,15 @@
 #ifndef DEVKIT_QUIC_LISTENER_H_
 #define DEVKIT_QUIC_LISTENER_H_
 #include "core-fwd.h"
-#include <string_view>
+#include <gsl/zstring>
 
 namespace quic {
 
 class listener {
 public:
-    listener() = default;
+    listener();
     ~listener();
-    void start(std::string_view address);
+    void start(gsl::czstring address);
     void close();
 private:
     HQUIC handle_;

@@ -2,7 +2,6 @@
 #define DEVKIT_PROGRAM_OPTIONS_H_
 #include <gsl/pointers>
 #include <string>
-#include <cstdint>
 
 namespace boost::program_options {
     class options_description;

@@ -1,5 +1,6 @@
 #ifndef DEVKIT_APPLICATION_H_
 #define DEVKIT_APPLICATION_H_
+#include "quic/configuration.h"
 #include "quic/connection.h"
 #include "quic/listener.h"
 #include <gsl/pointers>
@@ -8,8 +9,9 @@
 
 class application {
     gsl::owner<void*> work_;
+    std::unique_ptr<quic::configuration> conf_;
 public:
-    application();
+    application(bool server);
     virtual void   run();
     virtual void close();
 };
@@ -20,7 +22,7 @@ public:
     ~server_application();
     void run() override;
 private:
-    std::unique_ptr<quic::listener> listener_;
+    std::unique_ptr<quic::listener>    listener_;
 };
 
 class client_application: public application {

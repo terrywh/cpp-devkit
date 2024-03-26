@@ -1,5 +1,6 @@
 #include "listener.h"
 #include "core.h"
+#include "configuration.h"
 #include "connection.h"
 #include "../util/exception.h"
 #include <fmt/core.h>
@@ -8,13 +9,20 @@
 
 namespace quic {
 
+listener::listener() {
+    QUIC_STATUS status;
+    if (QUIC_FAILED(status = core::get()->library->ListenerOpen(core::get()->registration, listener::handle_event, this, &handle_))) {
+        throw util::exception(fmt::format("failed to open listener (status = {})", status));
+    }
+}
+
 listener::~listener() {
     if (handle_) close();
 }
 
-void listener::start(std::string_view address) {
+void listener::start(gsl::czstring address) {
     QUIC_ADDR addr;
-    QuicAddrFromString(address.data(), 0, &addr);
+    QuicAddrFromString(address, 0, &addr);
     QUIC_STATUS status;
     if (QUIC_FAILED(status = core::get()->library->ListenerStart(handle_, &core::get()->protocol, 1, &addr))) {
         throw util::exception(fmt::format("failed to start listener (status = {})", status));
@@ -39,16 +47,9 @@ unsigned int listener::handle_event(HQUIC l, void* ctx, QUIC_LISTENER_EVENT* e) 
         QuicAddrToString(&addr, &addr_str);
 
         BOOST_LOG_TRIVIAL(debug) << "<Server.Listener.Event> NEW_CONNECTION: " << addr_str.Address;
-        //
-        // A new connection is being attempted by a client. For the handshake to
-        // proceed, the server must provide a configuration for QUIC to use. The
-        // app MUST set the callback handler before returning.
-        //
-        auto conn = std::make_unique<connection>(e->NEW_CONNECTION.Connection);
-        core::get()->library->SetCallbackHandler(e->NEW_CONNECTION.Connection, 
-                reinterpret_cast<void*>(connection::handle_event), conn.release());
-        status = core::get()->library->ConnectionSetConfiguration(
-                e->NEW_CONNECTION.Connection, core::get()->server);
+        // 由回调流程管理 connection 的生命周期
+        auto* escape = new connection(e->NEW_CONNECTION.Connection);
+        status = core::get()->library->ConnectionSetConfiguration(e->NEW_CONNECTION.Connection, configuration::get());
         break;
     }
     case QUIC_LISTENER_EVENT_STOP_COMPLETE:

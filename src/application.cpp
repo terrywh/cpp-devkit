@@ -7,8 +7,9 @@
 
 using work_guard = boost::asio::executor_work_guard<boost::asio::io_context::executor_type>;
 
-application::application()
-: work_(new work_guard(util::core::get()->context.get_executor())) {}
+application::application(bool server)
+: work_(new work_guard(util::core::get()->context.get_executor()))
+, conf_(new quic::configuration(server)) {}
 
 void application::run() {
     util::core::get()->context.run();
@@ -22,7 +23,8 @@ void application::close() {
 }
 
 client_application::client_application()
-: conn_(quic::core::get()->create_connection()) {
+: application(false)
+, conn_(std::make_unique<quic::connection>()) {
     
 }
 
@@ -31,12 +33,13 @@ client_application::~client_application() {
 }
 
 void client_application::run() {
-    conn_->start(application_options::get()->address());
+    conn_->start(application_options::get()->address().c_str(), "[::]:60001");
     application::run();
 }
 
 server_application::server_application()
-: listener_(quic::core::get()->create_listener("./var/server.cert", "./var/server.pkey")) {
+: application(true)
+, listener_(std::make_unique<quic::listener>()) {
 
 }
 
@@ -45,7 +48,7 @@ server_application::~server_application() {
 }
 
 void server_application::run() {
-    listener_->start(application_options::get()->address());
+    listener_->start(application_options::get()->address().c_str());
     application::run();
 }
 
